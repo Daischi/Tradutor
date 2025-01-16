@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const languages = [
   { code: "en", name: "Inglês" },
@@ -10,6 +10,49 @@ const languages = [
 ];
 
 function App() {
+  const [sourceLang, setSourceLang] = useState('pt')
+  const [targetLang, setTargetLang] = useState('en')
+  const [sourceText, setSourceText] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [transletedText, setTransletedText] = useState('');
+
+  useEffect(() => {
+
+    if (sourceText) {
+      const delay = setTimeout(() => {
+        handleTranslate();
+      }, 500);
+    
+      return () => clearTimeout(delay);
+    }
+    
+
+
+    handleTranslate()
+  }, [sourceText])
+  
+ 
+  const handleTranslate = async () => {
+    setIsLoading(true)
+    const response = await fetch(`https://api.mymemory.translated.net/get?q=${sourceText}!&langpair=${sourceLang}|${targetLang}`)
+  
+  
+    if (!response.ok) {
+      throw new Error(`HTTP ERROR: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    setTransletedText(data.responseData.translatedText);
+    
+    setIsLoading(false)
+  
+  
+  
+  }
+  
+
+
   return (
     <>
       <div className="min-h-screen bg-background flex flex-col">
@@ -24,7 +67,7 @@ function App() {
         <main className="flex-grow flex items-start justify-center px-4 py-8">
           <div className="w-full max-w-5xl bg-white rounded-lg shadow-md overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <select className="text-sm text-textColor bg-transparent border-none focus:outline-none cursor-pointer">
+              <select value={sourceLang} onChange={event => setSourceLang(event.target.value)} className="text-sm text-textColor bg-transparent border-none focus:outline-none cursor-pointer">
                 {languages.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.name}
@@ -49,7 +92,7 @@ function App() {
                 </svg>
               </button>
 
-              <select className="text-sm text-textColor bg-transparent border-none focus:outline-none cursor-pointer">
+              <select value={targetLang} onChange={event => setTargetLang(event.target.value)} className="text-sm text-textColor bg-transparent border-none focus:outline-none cursor-pointer">
                 {languages.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.name}
@@ -61,6 +104,9 @@ function App() {
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div>
                 <textarea
+                  value={sourceText}
+                  onChange={event => setSourceText(event.target.value)}
+
                   placeholder="Digite o texto"
                   className="w-full h-40 text-lg text-textColor bg-transparent resize-none border-none outline-none"
                 ></textarea>
@@ -71,10 +117,7 @@ function App() {
 
               <div className="p-4 relative bg-secondaryBackground border-l border-gray-200">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-200"></div>
-
-
-                  <p className="text-lg text-textColor"> </p>
+                  {isLoading ? (<div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-200"></div>) : (<p className="text-lg text-textColor">{transletedText} </p>) }
                 </div>
 
               </div>
@@ -84,13 +127,13 @@ function App() {
           </div>
         </main>
 
-                <footer className=" bg-secondaryBackground shadow-2xl p-4 border-t border-gray-200 mt-autp ">
+        <footer className=" bg-secondaryBackground shadow-2xl p-4 border-t border-gray-200 mt-autp ">
 
-                  <div className="font-sans">
-                  &copy;{new Date().getFullYear()}  Tradutor de Linguas
-                  </div>
+          <div className="font-sans">
+            &copy;{new Date().getFullYear()}  Tradutor de Linguas
+          </div>
 
-                </footer>
+        </footer>
 
       </div>
     </>
